@@ -1,0 +1,8 @@
+version: "3"
+services:
+  coordinates_backuper:
+    build:
+      .
+    command: python main.py
+    env_file:
+      - .env
