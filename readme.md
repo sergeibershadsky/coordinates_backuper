@@ -2,6 +2,6 @@
 
 ### Установка
 ```bash
-docker build -t  coordinates_backuper .
-
+docker-compose build
+docker-compose up -d
 ```
