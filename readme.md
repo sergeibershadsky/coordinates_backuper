@@ -1,6 +1,6 @@
-## Утилита для сохранения координат общественного транспорта с www.marsruty.ru/krasnodar/
+## Утилита для сохранения координат общественного транспорта с www.marsruty.ru/krasnodar/ на Я.Диск
 
-### Установка
+### Использование
 ```bash
 docker-compose build
 docker-compose up -d
