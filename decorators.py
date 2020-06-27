@@ -1,38 +1,27 @@
 import asyncio
-from functools import wraps
+
+from exceptions import TooManyTriesException
 from loguru import logger
 
 
-def retry(exceptions, tries=4, delay=3, backoff=2):
-    """
-    Retry calling the decorated function using an exponential backoff.
+def tries(times: int, delay: float = 1.0):
 
-    Args:
-        exceptions: The exception to check. may be a tuple of
-            exceptions to check.
-        tries: Number of times to try (not retry) before giving up.
-        delay: Initial delay between retries in seconds.
-        backoff: Backoff multiplier (e.g. value of 2 will double the delay
-            each retry).
-        logger: Logger to use. If None, print.
-    """
-
-    def deco_retry(f):
-
-        @wraps(f)
-        async def f_retry(*args, **kwargs):
-            mtries, mdelay = tries, delay
-            while mtries > 1:
+    def func_wrapper(f):
+        async def wrapper(*args, **kwargs):
+            _times = times
+            while _times:
+                # noinspection PyBroadException
                 try:
                     return await f(*args, **kwargs)
-                except exceptions as e:
-                    msg = '{}, Retrying in {} seconds...'.format(e, mdelay)
-                    logger.warning(msg)
-                    await asyncio.sleep(mdelay)
-                    mtries -= 1
-                    mdelay *= backoff
-            return await f(*args, **kwargs)
+                except Exception as exc:
+                    _times -= 1
+                    if not _times:
+                        raise TooManyTriesException() from exc
+                    else:
+                        logger.error(exc)
+                        await asyncio.sleep(delay)
+                        logger.warning("повторяем попытку")
 
-        return f_retry  # true decorator
+        return wrapper
 
-    return deco_retry
+    return func_wrapper

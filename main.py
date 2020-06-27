@@ -7,6 +7,8 @@ from httpx import HTTPError
 from loguru import logger
 
 from classes import UploadInfo
+from decorators import tries
+from exceptions import TooManyTriesException
 from notifier import notify_handler
 
 COORDINATES_URL = "https://www.marsruty.ru/krasnodar/gps.txt"
@@ -20,6 +22,7 @@ Y_DISK_AUTH_HEADERS = {'Authorization': f'OAuth {Y_DISK_TOKEN}'}
 logger.add(notify_handler, level="ERROR")
 
 
+@tries(times=2)
 async def collect() -> str:
     async with httpx.AsyncClient() as client:
         logger.info('Получаем координаты')
@@ -29,6 +32,7 @@ async def collect() -> str:
         return response.text
 
 
+@tries(times=5, delay=3.0)
 async def backup(data: str, timestamp: int) -> None:
     async with httpx.AsyncClient(headers=Y_DISK_AUTH_HEADERS) as client:
         logger.info('Записываем в Я.Диск')
@@ -57,6 +61,8 @@ async def collect_and_backup() -> None:
             await backup(fetch_info, ts)
         except HTTPError as e:
             logger.error('Ошибка отправки запроса: {}', e)
+        except TooManyTriesException as e:
+            logger.error(e)
         finally:
             logger.info(f'Ждем {TIMEOUT} сек')
             await asyncio.sleep(TIMEOUT)
