@@ -3,7 +3,7 @@ import os
 import time
 
 import httpx
-from httpx import HTTPError, Timeout
+from httpx import HTTPError, Timeout, codes
 from loguru import logger
 
 from classes import UploadInfo
@@ -44,12 +44,16 @@ async def backup(data: str, timestamp: int) -> None:
         upload_info = UploadInfo(**upload_info_response.json())
         if upload_info.method == 'PUT':
             backup_response = await client.put(upload_info.href, data=data)
-            backup_response.raise_for_status()
         elif upload_info.method == 'POST':
             backup_response = await client.post(upload_info.href, data=data)
-            backup_response.raise_for_status()
         else:
             logger.error('Метод загрузки не реализован {}', upload_info.method)
+            return
+        if backup_response.status_code == codes.CONFLICT:
+            """ Скорее всего файл был записан и далее нам нечего здесь делать """
+            logger.success('Координаты записанны')
+            return
+        backup_response.raise_for_status()
         logger.success('Координаты записанны')
 
 
