@@ -3,7 +3,7 @@ import os
 import time
 
 import httpx
-from httpx import HTTPError
+from httpx import HTTPError, Timeout
 from loguru import logger
 
 from classes import UploadInfo
@@ -34,7 +34,7 @@ async def collect() -> str:
 
 @tries(times=5, delay=3.0)
 async def backup(data: str, timestamp: int) -> None:
-    async with httpx.AsyncClient(headers=Y_DISK_AUTH_HEADERS) as client:
+    async with httpx.AsyncClient(headers=Y_DISK_AUTH_HEADERS, timeout=Timeout(read_timeout=15.0)) as client:
         logger.info('Записываем в Я.Диск')
         upload_info_response = await client.get(
             Y_DISK_API_URL,
