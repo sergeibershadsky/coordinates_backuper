@@ -3,7 +3,6 @@ import os
 import time
 
 import httpx
-from httpx import HTTPError, Timeout, codes
 from loguru import logger
 
 from classes import UploadInfo
@@ -34,7 +33,7 @@ async def collect() -> str:
 
 @tries(times=5, delay=3.0)
 async def backup(data: str, timestamp: int) -> None:
-    async with httpx.AsyncClient(headers=Y_DISK_AUTH_HEADERS, timeout=Timeout(read_timeout=15.0)) as client:
+    async with httpx.AsyncClient(headers=Y_DISK_AUTH_HEADERS, timeout=httpx.Timeout(read_timeout=45.0)) as client:
         logger.info('Записываем в Я.Диск')
         upload_info_response = await client.get(
             Y_DISK_API_URL,
@@ -42,18 +41,22 @@ async def backup(data: str, timestamp: int) -> None:
         )
         upload_info_response.raise_for_status()
         upload_info = UploadInfo(**upload_info_response.json())
-        if upload_info.method == 'PUT':
-            backup_response = await client.put(upload_info.href, data=data)
-        elif upload_info.method == 'POST':
-            backup_response = await client.post(upload_info.href, data=data)
-        else:
+        upload_methods = {
+            'PUT': client.put,
+            'POST': client.post
+        }
+        try:
+            backup_response = await upload_methods[upload_info.method](upload_info.href, data=data)
+            backup_response.raise_for_status()
+        except KeyError:
             logger.error('Метод загрузки не реализован {}', upload_info.method)
             return
-        if backup_response.status_code == codes.CONFLICT:
-            """ Скорее всего файл был записан и далее нам нечего здесь делать """
-            logger.success('Координаты записанны')
-            return
-        backup_response.raise_for_status()
+        except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+            if exc.response.status_code == httpx.codes.CONFLICT:
+                """ Скорее всего файл был записан, можно пропустить"""
+            else:
+                logger.exception(exc)
+                return
         logger.success('Координаты записанны')
 
 
@@ -63,8 +66,6 @@ async def collect_and_backup() -> None:
             fetch_info = await collect()
             ts = int(time.time())
             await backup(fetch_info, ts)
-        except HTTPError as e:
-            logger.error('Ошибка отправки запроса: {}', e)
         except TooManyTriesException as e:
             logger.error(e)
         finally:
