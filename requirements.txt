@@ -4,24 +4,50 @@
 #
 #    pip-compile
 #
-attrs==19.3.0             # via jsonschema
-certifi==2020.6.20        # via httpx, requests
-chardet==3.0.4            # via httpx, requests
-click==7.1.2              # via notifiers
-h11==0.9.0                # via httpcore
-httpcore==0.10.1          # via httpx
-httpx==0.14.1             # via -r requirements.in
-idna==2.10                # via httpx, requests
-jsonschema==3.2.0         # via notifiers
-loguru==0.5.1             # via -r requirements.in
-notifiers==1.2.1          # via -r requirements.in
-pyrsistent==0.16.0        # via jsonschema
-requests==2.24.0          # via notifiers
-rfc3986==1.4.0            # via httpx
-rfc3987==1.3.8            # via notifiers
-six==1.15.0               # via jsonschema
-sniffio==1.1.0            # via httpcore, httpx
-urllib3==1.25.10          # via requests
+attrs==19.3.0
+    # via jsonschema
+certifi==2022.12.7
+    # via
+    #   httpx
+    #   requests
+chardet==3.0.4
+    # via
+    #   httpx
+    #   requests
+click==7.1.2
+    # via notifiers
+h11==0.9.0
+    # via httpcore
+httpcore==0.10.1
+    # via httpx
+httpx==0.14.1
+    # via -r requirements.in
+idna==2.10
+    # via
+    #   httpx
+    #   requests
+jsonschema==3.2.0
+    # via notifiers
+loguru==0.5.1
+    # via -r requirements.in
+notifiers==1.2.1
+    # via -r requirements.in
+pyrsistent==0.16.0
+    # via jsonschema
+requests==2.24.0
+    # via notifiers
+rfc3986==1.4.0
+    # via httpx
+rfc3987==1.3.8
+    # via notifiers
+six==1.15.0
+    # via jsonschema
+sniffio==1.1.0
+    # via
+    #   httpcore
+    #   httpx
+urllib3==1.25.10
+    # via requests
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
